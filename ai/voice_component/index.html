@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  html, body { margin:0; padding:0; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background:transparent; }
+  #mic-btn {
+    display:flex; align-items:center; justify-content:center; gap:0.4rem;
+    width:100%; height:42px; box-sizing:border-box;
+    background:#5B6EF5; color:#ffffff; border:none; border-radius:10px;
+    font-size:0.92rem; font-weight:700; cursor:pointer; padding:0 0.8rem;
+    box-shadow:0 2px 6px rgba(91,110,245,0.25);
+  }
+  #mic-btn:disabled { background:#a9b3d6; cursor:not-allowed; }
+  #status { font-size:0.7rem; color:#5c8aa0; text-align:center; margin-top:0.15rem; min-height:0.9rem; white-space:nowrap; }
+</style>
+</head>
+<body>
+  <button id="mic-btn" title="Speak your message">🎤 Speak</button>
+  <div id="status"></div>
+
+<script>
+(function () {
+  // ---- Minimal Streamlit bidirectional component protocol (no build step / no React). ----
+  function sendToStreamlit(type, extra) {
+    var payload = Object.assign({ isStreamlitMessage: true, type: type }, extra || {});
+    window.parent.postMessage(payload, "*");
+  }
+  function notifyReady() { sendToStreamlit("streamlit:componentReady", { apiVersion: 1 }); }
+  function setFrameHeight(h) { sendToStreamlit("streamlit:setFrameHeight", { height: h }); }
+  function setComponentValue(value) { sendToStreamlit("streamlit:setComponentValue", { value: value, dataType: "json" }); }
+
+  var btn = document.getElementById("mic-btn");
+  var statusEl = document.getElementById("status");
+  var lang = "en-US";
+
+  var SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var recognition = null;
+  var audioCtx = null, analyser = null, micStream = null, dataArray = null, rafId = null;
+  var overlayHost = null;   // the document the overlay lives in (parent, or this doc as fallback)
+  var overlayEl = null;
+  var styleRef = null;
+  var usingLocalFallback = false;
+  var BAR_COUNT = 7;
+  var barPhases = [];
+  for (var p = 0; p < BAR_COUNT; p++) barPhases.push(Math.random() * Math.PI * 2);
+
+  if (!SpeechRecognitionImpl) {
+    btn.disabled = true;
+    btn.textContent = "🚫 Not supported";
+    btn.title = "Voice input not supported in this browser";
+    statusEl.textContent = "Try Chrome/Edge";
+    notifyReady();
+    setFrameHeight(60);
+    return;
+  }
+
+  function overlayHTML() {
+    var bars = "";
+    for (var i = 0; i < BAR_COUNT; i++) {
+      bars += '<div class="scv-bar" data-i="' + i + '" style="height:14px;"></div>';
+    }
+    return (
+      '<div id="scv-overlay" style="position:fixed; inset:0; width:100vw; height:100vh; ' +
+      'background:radial-gradient(circle at 50% 42%, #1c2733 0%, #0a0f16 70%); z-index:999999; ' +
+      'display:flex; flex-direction:column; align-items:center; justify-content:center; ' +
+      'font-family:-apple-system,Segoe UI,Roboto,sans-serif;">' +
+        '<div style="display:flex; align-items:flex-end; gap:9px; height:90px;">' + bars + '</div>' +
+        '<div id="scv-status" style="color:#bfe4ef; font-size:1rem; font-weight:600; ' +
+          'letter-spacing:0.04em; margin-top:1.4rem;">LISTENING...</div>' +
+        '<div id="scv-heard" style="color:#7fa8b8; font-size:0.85rem; margin-top:0.5rem; ' +
+          'max-width:80vw; text-align:center; min-height:1.2rem;"></div>' +
+        '<div style="display:flex; gap:1.4rem; margin-top:2.2rem;">' +
+          '<button id="scv-stop" title="Send" style="width:56px; height:56px; border-radius:50%; ' +
+            'border:none; background:#19a7ce; color:white; font-size:1.3rem; cursor:pointer;">\u2714</button>' +
+          '<button id="scv-cancel" title="Cancel" style="width:56px; height:56px; border-radius:50%; ' +
+            'border:none; background:#3a4552; color:white; font-size:1.1rem; cursor:pointer;">\u2715</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function openOverlay() {
+    var styleCSS = ".scv-bar{width:7px;border-radius:4px;background:linear-gradient(#7fd9f2,#19a7ce);transition:height 0.06s ease-out;}";
+    try {
+      // Inject into the PARENT document so the overlay truly covers the whole app,
+      // not just this component's small iframe box. Falls back below if blocked.
+      var wrapper = window.parent.document.createElement("div");
+      wrapper.innerHTML = overlayHTML();
+      window.parent.document.body.appendChild(wrapper.firstElementChild);
+      overlayHost = window.parent.document;
+      overlayEl = overlayHost.getElementById("scv-overlay");
+      styleRef = window.parent.document.createElement("style");
+      styleRef.textContent = styleCSS;
+      window.parent.document.head.appendChild(styleRef);
+    } catch (e) {
+      // Fallback: render inside our own iframe, sized as large as we can request.
+      var localStyle = document.createElement("style");
+      localStyle.textContent = styleCSS;
+      document.head.appendChild(localStyle);
+      styleRef = localStyle;
+      document.body.insertAdjacentHTML("beforeend", overlayHTML());
+      overlayHost = document;
+      overlayEl = document.getElementById("scv-overlay");
+      usingLocalFallback = true;
+      setFrameHeight(window.innerHeight || 600);
+    }
+
+    overlayHost.getElementById("scv-stop").addEventListener("click", function () { finishSession(true); });
+    overlayHost.getElementById("scv-cancel").addEventListener("click", function () { finishSession(false); });
+  }
+
+  function closeOverlay() {
+    if (styleRef && styleRef.parentNode) styleRef.parentNode.removeChild(styleRef);
+    styleRef = null;
+    if (overlayEl && overlayEl.parentNode) overlayEl.parentNode.removeChild(overlayEl);
+    overlayEl = null;
+    overlayHost = null;
+  }
+
+  function setStatus(text) {
+    if (!overlayHost) return;
+    var s = overlayHost.getElementById("scv-status");
+    if (s) s.textContent = text;
+  }
+  function setHeard(text) {
+    if (!overlayHost) return;
+    var h = overlayHost.getElementById("scv-heard");
+    if (h) h.textContent = text;
+  }
+
+  function animateBars() {
+    if (!analyser || !overlayHost) return;
+    analyser.getByteTimeDomainData(dataArray);
+    var sumSq = 0;
+    for (var i = 0; i < dataArray.length; i++) {
+      var v = (dataArray[i] - 128) / 128;
+      sumSq += v * v;
+    }
+    var rms = Math.sqrt(sumSq / dataArray.length); // ~0..1
+    var t = Date.now() / 180;
+    for (var b = 0; b < BAR_COUNT; b++) {
+      var el = overlayHost.querySelector('.scv-bar[data-i="' + b + '"]');
+      if (!el) continue;
+      var wobble = (Math.sin(t + barPhases[b]) + 1) / 2; // 0..1
+      var height = 10 + rms * 220 * (0.5 + 0.5 * wobble);
+      height = Math.max(8, Math.min(90, height));
+      el.style.height = height + "px";
+    }
+    rafId = requestAnimationFrame(animateBars);
+  }
+
+  function startSession() {
+    btn.textContent = "🔴 Listening...";
+    btn.title = "Listening... tap the mic in the overlay to stop";
+    openOverlay();
+    setStatus("LISTENING...");
+
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      micStream = stream;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      var source = audioCtx.createMediaStreamSource(stream);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      dataArray = new Uint8Array(analyser.fftSize);
+      source.connect(analyser);
+      animateBars();
+    }).catch(function () {
+      setStatus("Microphone access denied");
+      setHeard("Check your browser's site permissions, then try again.");
+    });
+
+    recognition = new SpeechRecognitionImpl();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    recognition.lang = lang;
+
+    recognition.onresult = function (event) {
+      var interim = "", finalText = "";
+      for (var i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) finalText += event.results[i][0].transcript;
+        else interim += event.results[i][0].transcript;
+      }
+      if (finalText.trim()) {
+        setHeard(finalText.trim());
+        var textToSend = finalText.trim();
+        endSession();
+        setComponentValue({ text: textToSend, ts: Date.now() });
+      } else if (interim.trim()) {
+        setHeard(interim.trim());
+      }
+    };
+    recognition.onerror = function (event) {
+      if (event.error === "no-speech") {
+        setStatus("Didn't catch that");
+        setHeard("Tap the mic again when ready.");
+      } else if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+        setStatus("Microphone access denied");
+        setHeard("Check your browser's site permissions.");
+      } else {
+        setStatus("Voice error");
+        setHeard(event.error);
+      }
+      setTimeout(function () { endSession(); }, 1400);
+    };
+    recognition.onend = function () { /* cleanup handled explicitly by endSession()/finishSession() */ };
+
+    try { recognition.start(); } catch (e) { /* start() throws if already active; ignore */ }
+  }
+
+  function finishSession(shouldSend) {
+    // Checkmark: force-finalize now and send whatever's been heard so far.
+    // X: discard everything, no message sent.
+    if (shouldSend) {
+      var heardEl = overlayHost ? overlayHost.getElementById("scv-heard") : null;
+      var heardText = heardEl ? heardEl.textContent : "";
+      if (recognition) { try { recognition.stop(); } catch (e) {} }
+      endSession();
+      if (heardText && heardText.trim()) {
+        setComponentValue({ text: heardText.trim(), ts: Date.now() });
+      }
+    } else {
+      if (recognition) { try { recognition.abort(); } catch (e) {} }
+      endSession();
+    }
+  }
+
+  function endSession() {
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    if (audioCtx) { try { audioCtx.close(); } catch (e) {} audioCtx = null; }
+    if (micStream) { micStream.getTracks().forEach(function (t) { t.stop(); }); micStream = null; }
+    analyser = null; dataArray = null;
+    if (recognition) { recognition.onresult = null; recognition.onerror = null; recognition.onend = null; recognition = null; }
+    closeOverlay();
+    btn.textContent = "🎤 Speak";
+    btn.title = "Speak your message";
+    statusEl.textContent = "";
+    if (usingLocalFallback) {
+      setFrameHeight(60);
+      usingLocalFallback = false;
+    }
+  }
+
+  btn.addEventListener("click", function () {
+    if (overlayEl) return; // a session is already active
+    startSession();
+  });
+
+  window.addEventListener("message", function (event) {
+    var data = event.data;
+    if (!data || !data.isStreamlitMessage) return;
+    if (data.type === "streamlit:render") {
+      var args = data.args || {};
+      if (args.lang) lang = args.lang;
+    }
+  });
+
+  notifyReady();
+  setFrameHeight(60);
+})();
+</script>
+</body>
+</html>

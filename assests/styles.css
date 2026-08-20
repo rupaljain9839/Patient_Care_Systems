@@ -1,0 +1,420 @@
+/* SmartCare / IPCMS theme v3 — blue sidebar + white card layout */
+
+:root {
+    --ipcms-navy-dark: #0b2e4d;
+    --ipcms-blue: #1f5fa8;
+    --ipcms-accent: #2f7dd1;
+    --ipcms-accent-light: #5b9be0;
+    --ipcms-accent-2: #7fb8e8;
+    --ipcms-page-bg: #eef4fb;
+    --ipcms-card-bg: #ffffff;
+}
+
+.stApp {
+    background-color: var(--ipcms-page-bg);
+}
+
+/* ---------- Sidebar ---------- */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, var(--ipcms-blue) 0%, var(--ipcms-navy-dark) 100%);
+}
+section[data-testid="stSidebar"] * {
+    color: #dbe9fa !important;
+}
+section[data-testid="stSidebar"] h3,
+section[data-testid="stSidebar"] h4 {
+    color: #ffffff !important;
+}
+
+/* Sidebar buttons styled as nav pills */
+section[data-testid="stSidebar"] .stButton > button {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #dbe9fa !important;
+    border-radius: 10px;
+    text-align: left;
+    justify-content: flex-start;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    width: 100%;
+}
+section[data-testid="stSidebar"] .stButton > button:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: none;
+    box-shadow: none;
+}
+
+/* Sidebar brand box */
+.ipcms-brand-box {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+.ipcms-brand-box .icon {
+    background: var(--ipcms-accent);
+    color: white;
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+.ipcms-brand-box .name {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: white !important;
+    line-height: 1.1;
+}
+.ipcms-brand-box .tagline {
+    font-size: 0.68rem;
+    color: #bcdcf5 !important;
+    line-height: 1.2;
+}
+
+/* Sidebar user identity box */
+.ipcms-user-box {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 0.7rem 0.9rem;
+    margin-bottom: 1.1rem;
+}
+.ipcms-user-box .name {
+    font-weight: 700;
+    color: white !important;
+    font-size: 0.95rem;
+}
+.ipcms-user-box .role {
+    font-size: 0.75rem;
+    color: #bcdcf5 !important;
+}
+
+/* ---------- Main content ---------- */
+h1, h2, h3 {
+    color: var(--ipcms-navy-dark);
+}
+
+/* Page header card: "Welcome, X!" */
+.ipcms-header-card {
+    background: var(--ipcms-card-bg);
+    border-radius: 16px;
+    padding: 1.3rem 1.6rem;
+    box-shadow: 0 2px 12px rgba(31, 95, 168, 0.08);
+    margin-bottom: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.ipcms-header-card .title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--ipcms-navy-dark);
+}
+.ipcms-header-card .subtitle {
+    color: #5c7c99;
+    font-size: 0.9rem;
+    margin-top: 0.15rem;
+}
+.ipcms-header-badge {
+    background: var(--ipcms-accent);
+    color: white;
+    border-radius: 10px;
+    padding: 0.45rem 0.9rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+/* Generic white content panel */
+.ipcms-panel {
+    background: var(--ipcms-card-bg);
+    border-radius: 16px;
+    padding: 1.2rem 1.4rem;
+    box-shadow: 0 2px 12px rgba(31, 95, 168, 0.08);
+    margin-bottom: 1rem;
+}
+.ipcms-panel .panel-label {
+    font-size: 0.85rem;
+    color: #5c7c99;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+.ipcms-panel .panel-empty {
+    color: #93a9bd;
+    font-size: 0.9rem;
+}
+.ipcms-panel .panel-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--ipcms-navy-dark);
+    margin-top: 0.2rem;
+}
+.ipcms-panel .mini-stats {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+.ipcms-panel .mini-stats .k {
+    font-size: 0.78rem;
+    color: #5c7c99;
+    font-weight: 600;
+}
+.ipcms-panel .mini-stats .v {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--ipcms-accent);
+}
+
+/* Buttons in main content */
+.stButton > button {
+    background: linear-gradient(135deg, var(--ipcms-accent) 0%, var(--ipcms-accent-light) 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 1.2rem;
+    font-weight: 600;
+}
+.stButton > button:hover {
+    box-shadow: 0 6px 16px rgba(47, 125, 209, 0.3);
+    color: white;
+}
+.stButton > button:disabled {
+    background: #d7e6f5;
+    color: #93a9bd;
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab"] {
+    font-weight: 600;
+    color: var(--ipcms-navy-dark);
+}
+.stTabs [aria-selected="true"] {
+    color: var(--ipcms-accent) !important;
+    border-bottom-color: var(--ipcms-accent) !important;
+}
+
+/* Native st.metric fallback (kept for any leftover usages) */
+[data-testid="stMetric"] {
+    background: white;
+    border-radius: 14px;
+    padding: 1rem 1.2rem;
+    box-shadow: 0 2px 10px rgba(31, 95, 168, 0.08);
+}
+
+/* Gradient stat card (views/components.py render_stat_card) */
+.ipcms-stat-card {
+    border-radius: 16px;
+    padding: 1.1rem 1.3rem;
+    color: white;
+    min-height: 100px;
+    box-shadow: 0 6px 18px rgba(31, 95, 168, 0.16);
+}
+.ipcms-stat-card .label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    font-weight: 600;
+}
+.ipcms-stat-card .value {
+    font-size: 2.1rem;
+    font-weight: 800;
+    margin-top: 0.2rem;
+}
+
+/* Live vitals card */
+.ipcms-vitals-wrap {
+    background: linear-gradient(180deg, #eef2ff 0%, #dbe9fa 100%);
+    border-radius: 20px;
+    padding: 1.8rem;
+    box-shadow: 0 4px 20px rgba(31, 95, 168, 0.1);
+}
+.ipcms-vitals-title {
+    letter-spacing: 0.12em;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--ipcms-accent);
+    margin-bottom: 0.8rem;
+}
+.ipcms-vitals-pill {
+    background: white;
+    border-radius: 14px;
+    padding: 0.7rem 1rem;
+    box-shadow: 0 3px 10px rgba(31, 95, 168, 0.08);
+    margin-bottom: 0.7rem;
+}
+.ipcms-vitals-pill .k {
+    font-size: 0.75rem;
+    color: #5c7c99;
+    font-weight: 600;
+}
+.ipcms-vitals-pill .v {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--ipcms-navy-dark);
+}
+
+/* ---------- Auth page background ---------- */
+.auth-bg-wrap {
+    position: relative;
+    min-height: 100vh;
+    margin: -1rem -1rem 0 -1rem;
+    padding: 3rem 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background-image:
+        linear-gradient(135deg, rgba(31,95,168,0.88), rgba(110,22,34,0.82)),
+        url('https://impacthealthusa.com/wp-content/uploads/2024/01/healthcare-oco8w27tkw40cp90.jpg');
+    background-size: cover;
+    background-position: center;
+}
+.auth-card {
+    background: var(--ipcms-card-bg);
+    border-radius: 20px;
+    padding: 2.5rem 2.5rem 1.5rem 2.5rem;
+    width: 100%;
+    max-width: 620px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+.auth-brand-title {
+    text-align: center;
+    font-size: 1.9rem;
+    font-weight: 900;
+    color: var(--ipcms-navy-dark);
+    margin-bottom: 0.2rem;
+}
+.auth-brand-subtitle {
+    text-align: center;
+    color: #5c7c99;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+/* ---------- Flask patient portal additions ---------- */
+.ipcms-msg-success { background:#dbe9fa; color:#0b3d5c; border-radius:10px; padding:0.6rem 1rem; margin-bottom:1rem; }
+.ipcms-msg-error { background:#ffe3e3; color:#1f5fa8; border-radius:10px; padding:0.6rem 1rem; margin-bottom:1rem; }
+.slot-btn {
+    background: linear-gradient(135deg, var(--ipcms-accent) 0%, var(--ipcms-accent-light) 100%);
+    color: white; border: none; border-radius: 10px; padding: 0.5rem 1rem; font-weight: 600; cursor: pointer;
+}
+
+/* ---------- Form controls (inputs, selects, textareas, buttons) ---------- */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="tel"],
+select,
+textarea {
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--ipcms-navy-dark);
+    background: white;
+    border: 1.5px solid #d7e6f5;
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus,
+input[type="tel"]:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--ipcms-accent);
+    box-shadow: 0 0 0 3px rgba(47, 125, 209, 0.15);
+}
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%232f7dd1'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1.1em;
+    padding-right: 2.2rem;
+}
+textarea {
+    width: 100%;
+    min-height: 90px;
+    resize: vertical;
+}
+label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #5c7c99;
+    margin-bottom: 0.3rem;
+}
+
+/* Generic buttons already styled via .stButton-like rule below for non-Streamlit forms */
+button, input[type="submit"] {
+    background: linear-gradient(135deg, var(--ipcms-accent) 0%, var(--ipcms-accent-light) 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.55rem 1.2rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: box-shadow 0.15s ease;
+}
+button:hover, input[type="submit"]:hover {
+    box-shadow: 0 6px 16px rgba(47, 125, 209, 0.3);
+}
+
+/* Sidebar links/logout already styled via .sidebar-link; keep those buttons unaffected */
+.ipcms-sidebar button, .ipcms-sidebar a.sidebar-link {
+    all: unset;
+}
+.ipcms-sidebar a.sidebar-link {
+    display: block;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #dbe9fa !important;
+    text-decoration: none;
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    cursor: pointer;
+}
+.ipcms-sidebar a.sidebar-link:hover {
+    background: rgba(255,255,255,0.18);
+}
+
+/* ---------- Flask layout shell (was missing from prior file versions — restored here) ---------- */
+.ipcms-layout {
+    display: flex;
+    min-height: 100vh;
+}
+.ipcms-sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, var(--ipcms-blue) 0%, var(--ipcms-navy-dark) 100%);
+    padding: 1.5rem 1rem;
+}
+.ipcms-main {
+    flex: 1;
+    padding: 2rem;
+    background: var(--ipcms-page-bg);
+}
+.ipcms-stat-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+.ipcms-stat-row > div { flex: 1; }
+.ipcms-two-col {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+.ipcms-two-col .col-main { flex: 2; min-width: 0; }
+.ipcms-two-col .col-side { flex: 1; min-width: 0; }

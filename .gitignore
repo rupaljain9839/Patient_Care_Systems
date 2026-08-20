@@ -1,0 +1,19 @@
+# Virtual Environment
+patient_care/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Environment Variables
+.env
+
+# Database
+hospital.db
+
+# VS Code
+.vscode/
+
+# OS Files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,20 @@
+# ---- Web app ----
+streamlit
+plotly
+pandas
+
+# ---- Database (MySQL) ----
+SQLAlchemy
+PyMySQL
+bcrypt
+python-dotenv
+
+# ---- LLM + RAG (LangChain / Groq / Chroma / BGE) ----
+langchain
+langchain-core
+langchain-community
+langchain-groq
+langchain-huggingface
+langchain-chroma
+chromadb
+sentence-transformers
